@@ -29,6 +29,13 @@ namespace Mailoo.Controllers
         {
             if (ModelState.IsValid)
             {
+                var existingColor = _context.Colors.FirstOrDefault(c => c.ColorName == color.ColorName);
+                if (existingColor != null)
+                {
+                    ModelState.AddModelError("ColorName", "Color with this name already exists.");
+                    return View(color);
+                }
+
                 _context.Colors.Add(color);
                 _context.SaveChanges();
                 return RedirectToAction("Index");
@@ -45,11 +52,19 @@ namespace Mailoo.Controllers
             return View(color);
         }
 
+      
         [HttpPost]
         public IActionResult Edit(Color color)
         {
             if (ModelState.IsValid)
             {
+                var existingColor = _context.Colors.FirstOrDefault(c => c.ColorName == color.ColorName && c.Id != color.Id);
+                if (existingColor != null)
+                {
+                    ModelState.AddModelError("ColorName", "Color with this name already exists.");
+                    return View(color);
+                }
+
                 _context.Colors.Update(color);
                 _context.SaveChanges();
                 return RedirectToAction("Index");

@@ -5,54 +5,60 @@
 }
 
 <div class="container p-3">
-     @if (Model == null || !Model.Any())
-        {
-            <h1 class="text-center">No Orders</h1>
-        }
-        else
-        {
-    <div class="row pt-4">
-        <div class="col-6">
-            <h2 class="text-primary">Your Orders</h2>
+    @if (Model == null || !Model.Any())
+    {
+        <h1 class="text-center">No Orders</h1>
+    }
+    else
+    {
+        <div class="row pt-4">
+            <div class="col-6">
+                <h2 class="text-primary">Your Orders</h2>
+            </div>
         </div>
-        
-    </div>
 
-    <hr />
-    <br />
+        <hr />
+        <br />
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Order Date</th>
-                <th>Order Status</th>
-                <th>Total Price</th>
-                @* <th>Payment Status</th> *@
-                <th>Cancel</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            @if(Model.Any())
-           { @foreach (Order o in Model)
-            {
+        <table class="table table-bordered">
+            <thead>
                 <tr>
-                    <td>@o.OrderDate</td>
-                  
-                    <td>@o.OrderStatus</td>
-                    <td>@o.FinalPrice</td>
-                            <td>
-                                <form method="post" asp-action="CancelOrder" asp-controller="Cart">
-                                    <input asp-for="@o.ID" name="OrderId" asp-route-OrderId="@o.ID" hidden />
-                                    <button type="submit" class="btn btn-outline-primary" @(o.OrderStatus != OrderStatus.Pending ? "disabled" : "")>Cancel</button>
-                                </form>
-                            </td>
+                    <th>Order Date</th>
+                    <th>Order Status</th>
+                    <th>Total Price</th>
+                    <th>Products</th>
+                    <th>Cancel</th>
                 </tr>
-
-            }}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (Order o in Model)
+                {
+                    <tr>
+                        <td>@o.OrderDate</td>
+                        <td>@o.OrderStatus</td>
+                        <td>@o.FinalPrice.ToString("C")</td>
+                        <td>
+                            <ul>
+                                @foreach (var orderProduct in o.OrderProducts)
+                                {
+                                    <li>
+                                        @orderProduct.product.Name /
+                                        Size: @(orderProduct.Variant?.Size?.SizeName ?? "N/A"),
+                                        Color: @(orderProduct.Variant?.Color?.ColorName ?? "N/A"),
+                                        Quantity: @orderProduct.Quantity,
+                                    </li>
+                                }
+                            </ul>
+                        </td>
+                        <td>
+                            <form method="post" asp-action="CancelOrder" asp-controller="Cart">
+                                <input asp-for="@o.ID" name="OrderId" asp-route-OrderId="@o.ID" hidden />
+                                <button type="submit" class="btn btn-outline-primary" @(o.OrderStatus != OrderStatus.Pending ? "disabled" : "")>Cancel</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     }
 </div>
-
-

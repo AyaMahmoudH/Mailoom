@@ -26,6 +26,7 @@ namespace Mailo.Controllers
             _db = db;
         }
 
+
         public async Task<IActionResult> Index()
         {
             User? user = await _unitOfWork.userRepo.GetUser(User.Identity?.Name);
@@ -91,11 +92,9 @@ namespace Mailo.Controllers
                 return BadRequest(TempData["ErrorMessage"]);
             }
 
-            // Normalize the color and size values
             color = color.Trim().ToLower();
             size = size.Trim().ToLower();
 
-            // Fetch the variant based on color and size
             var variant = await _db.ProductVariants
                 .Include(v => v.Color)
                 .Include(v => v.Size)
@@ -223,6 +222,20 @@ namespace Mailo.Controllers
             }
             return View("Index");
         }
+        public async Task<List<Order>> GetOrdersWithDetails(User user)
+        {
+            return await _db.Orders
+      .Where(o => o.UserID == user.ID)
+      .Include(o => o.OrderProducts)
+          .ThenInclude(op => op.Variant)
+              .ThenInclude(v => v.Size)
+      .Include(o => o.OrderProducts)
+          .ThenInclude(op => op.Variant)
+              .ThenInclude(v => v.Color).Include(o => o.OrderProducts)
+          .ThenInclude(op => op.product)
+      .ToListAsync();
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
@@ -231,16 +244,16 @@ namespace Mailo.Controllers
             {
                 return RedirectToAction("Login", "Account");
             }
-            var orders = await _order.GetOrders(user);
 
-            if (orders != null)
+            var orders = await GetOrdersWithDetails(user);
+
+            if (orders != null && orders.Any())
             {
                 return View(orders);
             }
             else
             {
                 return View("Index");
-
             }
         }
         [HttpPost]
@@ -346,16 +359,27 @@ namespace Mailo.Controllers
         private async Task SendOrderConfirmationEmail(string email, Order order)
         {
             var subject = "Order Confirmation";
-            var body = $"Thank you for your order!<br/><br/>" +
-                       $"Order ID: {order.ID}<br/>" +
-                       $"Order Date: {order.OrderDate}<br/>" +
-                       $"Total Price: {order.FinalPrice:C}<br/><br/>" +
-                       "<strong>Items:</strong><br/>";
+            var body = $"Thank you for your order ! </br> " +
+                       $"  When the order status is shipped, you cannot cancel the order !<br/><br/>" +
+                       $"<strong>Order Details:</strong><br/>";
 
             foreach (var item in order.OrderProducts)
             {
-                body += $"{item.product.Name} - {item.Quantity} x {item.product.TotalPrice:C}<br/>";
+                var variant = await _db.ProductVariants
+                    .Include(v => v.Size)
+                    .Include(v => v.Color)
+                    .FirstOrDefaultAsync(v => v.Id == item.VariantID);
+
+                if (variant != null)
+                {
+                    body += $"<strong>Product:</strong> {item.product.Name}<br/>" +
+                            $"<strong>Quantity:</strong> {item.Quantity}<br/>" +
+                            $"<strong>Color:</strong> {variant.Color.ColorName}<br/>" +
+                            $"<strong>Size:</strong> {variant.Size.SizeName}<br/>" ;
+                }
             }
+
+            body += $"<strong>Total Price:</strong> {order.FinalPrice:C}<br/>";
 
             var message = new MailMessage
             {
@@ -372,6 +396,67 @@ namespace Mailo.Controllers
                 smtp.EnableSsl = true;
                 await smtp.SendMailAsync(message);
             }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IncreaseQuantity(int productId, int variantId)
+        {
+            User? user = await _unitOfWork.userRepo.GetUser(User.Identity?.Name);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var cart = await _order.GetOrCreateCart(user);
+            var orderProduct = cart.OrderProducts?.FirstOrDefault(op => op.ProductID == productId && op.VariantID == variantId);
+
+            if (orderProduct != null)
+            {
+                var variant = await _db.ProductVariants.FindAsync(variantId);
+                if (variant != null && variant.Quantity > 0)
+                {
+                    orderProduct.Quantity += 1;
+                    cart.OrderPrice += orderProduct.product.TotalPrice;
+                    cart.FinalPrice += orderProduct.product.TotalPrice;
+                    variant.Quantity -= 1;
+                    _db.ProductVariants.Update(variant);
+                    _unitOfWork.orders.Update(cart);
+                    await _unitOfWork.CommitChangesAsync();
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
+    
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DecreaseQuantity(int productId, int variantId)
+        {
+            User? user = await _unitOfWork.userRepo.GetUser(User.Identity?.Name);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var cart = await _order.GetOrCreateCart(user);
+            var orderProduct = cart.OrderProducts?.FirstOrDefault(op => op.ProductID == productId && op.VariantID == variantId);
+
+            if (orderProduct != null && orderProduct.Quantity > 1)
+            {
+                var variant = await _db.ProductVariants.FindAsync(variantId);
+                if (variant != null)
+                {
+                    orderProduct.Quantity -= 1;
+                    cart.OrderPrice -= orderProduct.product.TotalPrice;
+                    cart.FinalPrice -= orderProduct.product.TotalPrice;
+                    variant.Quantity += 1;
+                    _db.ProductVariants.Update(variant);
+                    _unitOfWork.orders.Update(cart);
+                    await _unitOfWork.CommitChangesAsync();
+                }
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }

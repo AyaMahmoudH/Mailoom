@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Mailoo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250201023223_iii")]
-    partial class iii
+    [Migration("20250201224440_ii")]
+    partial class ii
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -314,7 +314,7 @@ namespace Mailoo.Migrations
                             LName = "Assem",
                             Password = "MaiiiAsss123#44",
                             PhoneNumber = "01011895030",
-                            RegistrationDate = new DateTime(2025, 2, 1, 4, 32, 22, 679, DateTimeKind.Local).AddTicks(8960),
+                            RegistrationDate = new DateTime(2025, 2, 2, 0, 44, 39, 271, DateTimeKind.Local).AddTicks(9890),
                             UserType = 1,
                             Username = "MaiAssemAdmin123"
                         });
@@ -369,11 +369,33 @@ namespace Mailoo.Migrations
 
                     b.Property<string>("ColorName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ColorName")
+                        .IsUnique();
+
                     b.ToTable("Color", (string)null);
+                });
+
+            modelBuilder.Entity("Mailoo.Models.Delivery", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("DeliveryFee")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Name")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("deliveries");
                 });
 
             modelBuilder.Entity("Mailoo.Models.ProductVariant", b =>
@@ -472,9 +494,12 @@ namespace Mailoo.Migrations
 
                     b.Property<string>("SizeName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SizeName")
+                        .IsUnique();
 
                     b.ToTable("Size", (string)null);
                 });

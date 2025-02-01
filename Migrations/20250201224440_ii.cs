@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Mailoo.Migrations
 {
     /// <inheritdoc />
-    public partial class iii : Migration
+    public partial class ii : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,11 +30,25 @@ namespace Mailoo.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ColorName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ColorName = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Color", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "deliveries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<int>(type: "int", nullable: false),
+                    DeliveryFee = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_deliveries", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -58,7 +72,7 @@ namespace Mailoo.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    SizeName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    SizeName = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -346,12 +360,18 @@ namespace Mailoo.Migrations
             migrationBuilder.InsertData(
                 table: "User",
                 columns: new[] { "ID", "Address", "Email", "EmailVerificationToken", "EmailVerificationTokenExpiry", "FName", "Gender", "Governorate", "InstagramLink", "IsEmailVerified", "LName", "Password", "PasswordResetToken", "PasswordResetTokenExpiry", "PhoneNumber", "RegistrationDate", "UserType", "Username" },
-                values: new object[] { 2, "Beni-Suef", "mailostoreee@gmail.com", null, null, "Mai", 1, 15, "https://www.instagram.com/mai.assem.123/", null, "Assem", "MaiiiAsss123#44", null, null, "01011895030", new DateTime(2025, 2, 1, 4, 32, 22, 679, DateTimeKind.Local).AddTicks(8960), 1, "MaiAssemAdmin123" });
+                values: new object[] { 2, "Beni-Suef", "mailostoreee@gmail.com", null, null, "Mai", 1, 15, "https://www.instagram.com/mai.assem.123/", null, "Assem", "MaiiiAsss123#44", null, null, "01011895030", new DateTime(2025, 2, 2, 0, 44, 39, 271, DateTimeKind.Local).AddTicks(9890), 1, "MaiAssemAdmin123" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Category_Name",
                 table: "Category",
                 column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Color_ColorName",
+                table: "Color",
+                column: "ColorName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -421,6 +441,12 @@ namespace Mailoo.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Size_SizeName",
+                table: "Size",
+                column: "SizeName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
                 table: "User",
                 column: "Email",
@@ -449,6 +475,9 @@ namespace Mailoo.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Contact");
+
+            migrationBuilder.DropTable(
+                name: "deliveries");
 
             migrationBuilder.DropTable(
                 name: "OrderProduct");

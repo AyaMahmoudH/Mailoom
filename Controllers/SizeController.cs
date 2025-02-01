@@ -12,7 +12,7 @@ namespace Mailoo.Controllers
         {
             _context = context;
         }
-            public IActionResult Index()
+            public IActionResult index()
             {
                 var sizes = _context.Sizes.ToList();
                 return View(sizes);
@@ -24,18 +24,24 @@ namespace Mailoo.Controllers
             }
 
             [HttpPost]
-            public IActionResult Create(Size size)
+        public IActionResult Create(Size size)
+        {
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                var existingSize = _context.Sizes.FirstOrDefault(c => c.SizeName == size.SizeName);
+                if (existingSize != null)
                 {
-                    _context.Sizes.Add(size);
-                    _context.SaveChanges();
-                    return RedirectToAction("Index");
+                    ModelState.AddModelError("SizeName", "Size with this name already exists.");
+                    return View(size);
                 }
-                return View(size);
-            }
 
-            public IActionResult Edit(int id)
+                _context.Sizes.Add(size);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(size);
+        }
+        public IActionResult Edit(int id)
             {
                 var size = _context.Sizes.Find(id);
                 if (size == null)
@@ -45,16 +51,23 @@ namespace Mailoo.Controllers
             }
 
             [HttpPost]
-            public IActionResult Edit(Size size)
+        public IActionResult Edit(Size size)
+        {
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                var existingSize = _context.Sizes.FirstOrDefault(c => c.SizeName == size.SizeName && c.Id != size.Id);
+                if (existingSize != null)
                 {
-                    _context.Sizes.Update(size);
-                    _context.SaveChanges();
-                    return RedirectToAction("Index");
+                    ModelState.AddModelError("SizeName", "Size with this name already exists.");
+                    return View(size);
                 }
-                return View(size);
+
+                _context.Sizes.Update(size);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
             }
+            return View(size);
+        }
 
         public IActionResult Delete(int id)
         {

@@ -125,6 +125,18 @@ namespace Mailo.Data
             modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
             .IsUnique();
+
+            modelBuilder.Entity<Size>()
+         .HasIndex(u => u.SizeName)
+         .IsUnique();
+
+            modelBuilder.Entity<Color>()
+            .HasIndex(u => u.ColorName)
+            .IsUnique();
+            modelBuilder.Entity<Category>()
+            .HasIndex(u => u.Name)
+            .IsUnique();
+           
             #endregion
 
             #region Computed Attributes
@@ -168,6 +180,8 @@ namespace Mailo.Data
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<Size> Sizes { get; set; }
         public DbSet<Color> Colors { get; set; }
+        public DbSet<Delivery> deliveries { get; set; }
+
         #endregion
 
     }

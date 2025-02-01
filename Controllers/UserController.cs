@@ -24,11 +24,36 @@ namespace Mailo.Controllers
             _search = search;
         }
 
-        public async Task<IActionResult> Search(string text)
+        public async Task<IActionResult> Search(string text, int? categoryId)
         {
-            User? user = await _unitOfWork.userRepo.GetUser(User.Identity.Name);
-            var products = await _search.Search(text);
+            // احصل على المنتجات التي تطابق البحث
+            var query = _context.Products
+                .Include(p => p.Variants)
+                .ThenInclude(v => v.Size)
+                .Include(p => p.Variants)
+                .ThenInclude(v => v.Color)
+                .AsQueryable();
 
+            // تصفية حسب الفئة إذا تم اختيارها
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            // تصفية حسب النص إذا تم إدخاله
+            if (!string.IsNullOrEmpty(text))
+            {
+                query = query.Where(p => p.Name.Contains(text) || p.Description.Contains(text));
+            }
+
+            var products = await query.ToListAsync();
+
+            // تمرير بيانات الفئات للمظهر
+            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+            ViewBag.SelectedCategoryId = categoryId;
+
+            // عرض المنتجات بناءً على نوع المستخدم
+            var user = await _unitOfWork.userRepo.GetUser(User.Identity.Name);
             if (user == null || user.UserType == UserType.Client)
             {
                 return View("Index_U", products);
@@ -38,6 +63,8 @@ namespace Mailo.Controllers
                 return View("Index_A", products);
             }
         }
+
+
 
         #region Admin 
 
@@ -186,29 +213,34 @@ namespace Mailo.Controllers
         #region Client
         [HttpGet]
         [Authorize(Roles = "Client")]
-        public async Task<IActionResult> Index_U(int? categoryId)
+        public async Task<IActionResult> Index_U(int? categoryId, string searchText)
         {
             var query = _context.Products
                 .Include(p => p.Variants)
-                    .ThenInclude(v => v.Size)
+                .ThenInclude(v => v.Size)
                 .Include(p => p.Variants)
-                    .ThenInclude(v => v.Color)
-                .Include(p => p.OrderProducts)
-                    .ThenInclude(op => op.order)
-                    .ThenInclude(o => o.user)
-                .AsQueryable();  
+                .ThenInclude(v => v.Color)
+                .AsQueryable();
 
             if (categoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
 
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                query = query.Where(p => p.Name.Contains(searchText) || p.Description.Contains(searchText));
+            }
+
             var products = await query.ToListAsync();
 
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+            ViewBag.Categories = new SelectList(await _context.Categories
+                .OrderBy(c => c.Name)
+                .ToListAsync(), "Id", "Name");
 
             return View(products);
         }
+
 
 
 
