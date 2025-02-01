@@ -16,7 +16,7 @@ namespace Mailo.Models
         [Key]
         public int ID { get; set; }
         [DisplayName("Order Date")]
-        public DateTime OrderDate { get; set; } = DateTime.Now;
+        public DateTime OrderDate { get; set; } = DateTime.Now;//
         [DisplayName("Order Price")]
 
         public double OrderPrice { get; set; }
