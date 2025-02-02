@@ -64,7 +64,13 @@ namespace Mailo.Models
         //   public ICollection<Review> Reviews { get; set; }
         public List<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
 
-
+        public List<ColorImage> ProductColorImages { get; set; } = new List<ColorImage>();
+        [NotMapped]
+        public List<Color> AvailableColors => ProductColorImages
+    .Where(ci => ci.Color != null)
+    .Select(ci => ci.Color)
+    .Distinct()
+    .ToList();
 
     }
 }

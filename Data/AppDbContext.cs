@@ -181,6 +181,8 @@ namespace Mailo.Data
         public DbSet<Size> Sizes { get; set; }
         public DbSet<Color> Colors { get; set; }
         public DbSet<Delivery> deliveries { get; set; }
+        public DbSet<ColorImage> ColorImages { get; set; }
+
 
         #endregion
 

@@ -311,7 +311,7 @@ namespace Mailoo.Migrations
                             LName = "Assem",
                             Password = "MaiiiAsss123#44",
                             PhoneNumber = "01011895030",
-                            RegistrationDate = new DateTime(2025, 2, 2, 0, 44, 39, 271, DateTimeKind.Local).AddTicks(9890),
+                            RegistrationDate = new DateTime(2025, 2, 2, 5, 1, 0, 590, DateTimeKind.Local).AddTicks(4822),
                             UserType = 1,
                             Username = "MaiAssemAdmin123"
                         });
@@ -374,6 +374,35 @@ namespace Mailoo.Migrations
                         .IsUnique();
 
                     b.ToTable("Color", (string)null);
+                });
+
+            modelBuilder.Entity("Mailoo.Models.ColorImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ColorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("dbImage")
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColorId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ColorImages");
                 });
 
             modelBuilder.Entity("Mailoo.Models.Delivery", b =>
@@ -622,10 +651,29 @@ namespace Mailoo.Migrations
                     b.Navigation("user");
                 });
 
+            modelBuilder.Entity("Mailoo.Models.ColorImage", b =>
+                {
+                    b.HasOne("Mailoo.Models.Color", "Color")
+                        .WithMany("ColorImages")
+                        .HasForeignKey("ColorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Mailo.Models.Product", "Product")
+                        .WithMany("ProductColorImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Color");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Mailoo.Models.ProductVariant", b =>
                 {
                     b.HasOne("Mailoo.Models.Color", "Color")
-                        .WithMany()
+                        .WithMany("Variants")
                         .HasForeignKey("ColorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -680,6 +728,8 @@ namespace Mailoo.Migrations
                 {
                     b.Navigation("OrderProducts");
 
+                    b.Navigation("ProductColorImages");
+
                     b.Navigation("Variants");
 
                     b.Navigation("wishlists");
@@ -699,6 +749,13 @@ namespace Mailoo.Migrations
             modelBuilder.Entity("Mailoo.Models.Category", b =>
                 {
                     b.Navigation("products");
+                });
+
+            modelBuilder.Entity("Mailoo.Models.Color", b =>
+                {
+                    b.Navigation("ColorImages");
+
+                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("Mailoo.Models.ProductVariant", b =>

@@ -175,6 +175,34 @@ namespace Mailoo.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ColorImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ColorId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    dbImage = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ColorImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ColorImages_Color_ColorId",
+                        column: x => x.ColorId,
+                        principalTable: "Color",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ColorImages_Product_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Product",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductVariant",
                 columns: table => new
                 {
@@ -360,7 +388,7 @@ namespace Mailoo.Migrations
             migrationBuilder.InsertData(
                 table: "User",
                 columns: new[] { "ID", "Address", "Email", "EmailVerificationToken", "EmailVerificationTokenExpiry", "FName", "Gender", "Governorate", "InstagramLink", "IsEmailVerified", "LName", "Password", "PasswordResetToken", "PasswordResetTokenExpiry", "PhoneNumber", "RegistrationDate", "UserType", "Username" },
-                values: new object[] { 2, "Beni-Suef", "mailostoreee@gmail.com", null, null, "Mai", 1, 15, "https://www.instagram.com/mai.assem.123/", null, "Assem", "MaiiiAsss123#44", null, null, "01011895030", new DateTime(2025, 2, 2, 0, 44, 39, 271, DateTimeKind.Local).AddTicks(9890), 1, "MaiAssemAdmin123" });
+                values: new object[] { 2, "Beni-Suef", "mailostoreee@gmail.com", null, null, "Mai", 1, 15, "https://www.instagram.com/mai.assem.123/", null, "Assem", "MaiiiAsss123#44", null, null, "01011895030", new DateTime(2025, 2, 2, 5, 1, 0, 590, DateTimeKind.Local).AddTicks(4822), 1, "MaiAssemAdmin123" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Category_Name",
@@ -373,6 +401,16 @@ namespace Mailoo.Migrations
                 table: "Color",
                 column: "ColorName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ColorImages_ColorId",
+                table: "ColorImages",
+                column: "ColorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ColorImages_ProductId",
+                table: "ColorImages",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contact_userId",
@@ -473,6 +511,9 @@ namespace Mailoo.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ColorImages");
+
             migrationBuilder.DropTable(
                 name: "Contact");
 
